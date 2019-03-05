@@ -12,6 +12,8 @@ parser.add_argument('-l', '--list', required=False, dest='list', action='store_t
 client = boto3.client('s3')
 args = parser.parse_args()
 
+
+#Read a text file
 if os.path.isfile(args.buckets):
     with open(args.buckets, 'r') as f:
         for line in f:
