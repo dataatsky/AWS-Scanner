@@ -53,6 +53,8 @@ def check_bucket_name(bucketname):
 
 def check_bucket(bucket,argsList):
 
+    awsCred_Configured()  # Checks if the aws credentials are set up.
+
     if ".amazonaws.com" in bucket:
         buckets = bucket[:bucket.rfind(".s3")]
     elif ":" in bucket:
@@ -72,6 +74,7 @@ def check_bucket(bucket,argsList):
         permissions_bucket(buckets)
         check_bucket_files(buckets)
 
+
 def awsCred_Configured():
 
     p = subprocess.Popen(['aws', 'sts', 'get-caller-identity', '--output', 'text', '--query', 'Account'],stdout=subprocess.PIPE)
@@ -79,3 +82,8 @@ def awsCred_Configured():
 
     if error is not None:
         print("Your AWS creds are not setup. Please set them up to make this program work correctly")
+    else:
+        pass
+
+def dump_results_to_file():
+
