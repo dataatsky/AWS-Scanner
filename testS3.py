@@ -1,7 +1,7 @@
 import boto3, botocore, argparse, sys, os, requests
 
-parser = argparse.ArgumentParser()
-parser.add_argument('buckets',help='file text with bucket names')
+#parser = argparse.ArgumentParser()
+#parser.add_argument('buckets',help='file text with bucket names')
 client = boto3.client('s3')
 args = parser.parse_args()
 
