@@ -1,11 +1,9 @@
-import boto3, botocore, argparse, sys, os, requests
+import boto3, botocore,requests,subprocess
 
-#parser = argparse.ArgumentParser()
-#parser.add_argument('buckets',help='file text with bucket names')
 client = boto3.client('s3')
-args = parser.parse_args()
 
-def exceptions(e):
+
+def exceptions(e,bucketname):
 
     error_code = e.response['Error']['Message']
     if error_code == 'AccessDenied':
@@ -13,7 +11,8 @@ def exceptions(e):
     if error_code == 'All access to this object has been disabled':
         print('All access to this object has been disabled:')
     if error_code == 'The specified bucket does not exist':
-        print('The specified bucket does not exist')
+        print('The specified bucket does not exist',bucketname)
+
 
 def permissions_bucket(bucketname):
     """
@@ -23,22 +22,29 @@ def permissions_bucket(bucketname):
     try:
         list_bucket_response = client.get_bucket_acl(Bucket=bucketname)  # args.buckets
         for grant in list_bucket_response['Grants']:
-            print(grant)
+            if grant is not None:
+                save_results_file(grant)
+
+
 
     except botocore.exceptions.ClientError as e:
-        exceptions(e)
+        exceptions(e,bucketname)
 
 
-def check_bucket_files(bucketname):
+def check_bucket_files(bucketname,argssave):
     """
     This functions gives you information about the contents of S3 buckets if these are set to public.
     """
     try:
         results = client.list_objects(Bucket=bucketname)
         for obj in results.get('Contents', []):
-            print(obj)
+            if obj is not None:
+                save_results_file(obj)
+
+
     except botocore.exceptions.ClientError as e:
-        exceptions(e)
+        exceptions(e,bucketname)
+
 
 def check_bucket_name(bucketname):
 
@@ -51,9 +57,8 @@ def check_bucket_name(bucketname):
     return True
 
 
-def check_bucket(bucket,argsList):
-
-    awsCred_Configured()  # Checks if the aws credentials are set up.
+def check_bucket(bucket,argslist,argssave):
+    awscred_configured()  # Checks if the aws credentials are set up.
 
     if ".amazonaws.com" in bucket:
         buckets = bucket[:bucket.rfind(".s3")]
@@ -72,10 +77,10 @@ def check_bucket(bucket,argsList):
     else:
         check_bucket_name(buckets)
         permissions_bucket(buckets)
-        check_bucket_files(buckets)
+        check_bucket_files(buckets,argssave)
 
 
-def awsCred_Configured():
+def awscred_configured():
 
     p = subprocess.Popen(['aws', 'sts', 'get-caller-identity', '--output', 'text', '--query', 'Account'],stdout=subprocess.PIPE)
     response, error = p.communicate()
@@ -85,5 +90,9 @@ def awsCred_Configured():
     else:
         pass
 
-def dump_results_to_file():
+
+def save_results_file(info):
+    f = open('results.txt','a')
+    f.write(str(info) + '\n')
+    f.close()
 
